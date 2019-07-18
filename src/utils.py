@@ -16,8 +16,7 @@ def to_csv(fieldnames, collection, filename, datestamp=True):
     with open(filename, 'w') as outfile:
         w = csv.DictWriter(outfile, fieldnames, dialect='excel')
 
-        if not os.path.exists(filename):
-            w.writeheader()
+        w.writeheader()
 
         for row in collection:
             w.writerow(row)
