@@ -120,7 +120,7 @@ def add_additional_metadata(book_title,
     return results
 
 
-def do_xpath_search(archive_url, cnx_id, xpath_query, type="html"):
+def do_xpath_search(archive_url, cnx_id, xpath_query, type="baked-html"):
     """Does an xpath search against an archive instance and returns json
 
     """
