@@ -80,7 +80,7 @@ def save_results(output_dir, filename, results, datestamp=True):
     result_path = os.path.join(output_dir, filename)
 
     fieldnames = results[0].keys()
-    to_csv(fieldnames, results, result_path, datestamp)
+    to_csv(fieldnames, results, result_path, datestamp=datestamp)
 
 
 def add_additional_metadata(book_title,
