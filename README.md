@@ -5,6 +5,11 @@ A central location to store content engineering scripts used for ad-hoc purposes
 
 ## Scripts contained herein
 
+### Bash
+| script                       | description                                                                                                                 |
+|------------------------------|-----------------------------------------------------------------------------------------------------------------------------|
+| w3c_rex.sh                   | Used to run w3c html validator locally along w/ rex to validate html pages                                                  |
+
 ### Python
 
 | script                       | description                                                                                                                 |
