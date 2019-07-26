@@ -3,7 +3,7 @@
 ## Purpose
 
 This script was created when working on a self-closing tag issue within the 
-cnx-recipes repository. There is a related python script that helps search for
+cnxmlutils repository. There is a related python script that helps search for
 self-closing tags via cnx-archive. This is primarily an issue of rendering xhtml
 when rex-web renders html. Self-closing tags are not invalid in xhtml. 
 Therefore, in https://cnx.org self-closing tags should not cause any visible 
