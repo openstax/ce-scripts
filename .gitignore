@@ -28,8 +28,13 @@ MANIFEST
 pip-log.txt
 pip-delete-this-directory.txt
 
-# Pytest cache
-.pytest_cache
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*$py.class
 
 # Local Virtual Environment
 .venv/
+
+# Keep output directores
+python/output/*
+!python/output/.gitkeep

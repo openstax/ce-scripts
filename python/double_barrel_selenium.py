@@ -5,7 +5,7 @@ import sys
 from selenium import webdriver
 import chromedriver_binary  # Adds chromedriver binary to path
 
-from src.utils import save_csv_results, get_rows_from_csv
+from python.shared.utils import save_csv_results, get_rows_from_csv
 
 HERE = os.path.abspath(os.path.dirname(__file__))
 
