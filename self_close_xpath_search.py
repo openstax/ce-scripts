@@ -153,6 +153,11 @@ if __name__ == "__main__":
               "//h:iframe[not(node())]",
               "//h:span[not(node())]",
               "//h:h3[not(node())]",
+              "//h:section[not(node())]",
+              "//h:figure[not(node())]",
+              "//h:u[not(node())]",
+              "//h:a[not(node())]",
+              "//h:figcaption[not(node())]",
               ]
 
     q = "|".join([i for i in xitems])
