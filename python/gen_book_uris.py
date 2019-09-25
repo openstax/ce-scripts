@@ -1,7 +1,7 @@
 """CNX Book URI Generator: Generate URLS for cnx.org book for testing
 Usage:
-  python gen_book_urls.py <archive_host> <cnx_id>
-  python gen_book_urls.py (-h | --help)
+  gen_book_urls.py <archive_host> <cnx_id>
+  gen_book_urls.py (-h | --help)
 
 """
 import os
