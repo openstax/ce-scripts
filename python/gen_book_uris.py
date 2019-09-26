@@ -1,8 +1,15 @@
+#!/usr/bin/env python
 """CNX Book URI Generator: Generate URLS for cnx.org book for testing
 Usage:
   gen_book_urls.py <archive_host> <cnx_id>
   gen_book_urls.py (-h | --help)
 
+Examples:
+  Run as an executable:
+  ./gen_book_urls.py archive-staging.cnx.org e42bd376-624b-4c0f-972f-e0c57998e765
+
+  Run using the python command:
+  python gen_book_urls archive.cnx.org 7fccc9cf-9b71-44f6-800b-f9457fd64335
 """
 import os
 
