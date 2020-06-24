@@ -48,3 +48,5 @@ if [ $remainder -gt 0 ]; then
     end=$((start + remainder - 1))
     get_members $start $end
 fi
+
+echo Finished. All members should be in the file $csvfile
