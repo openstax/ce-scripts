@@ -6,7 +6,7 @@ csvfile=members.csv
 function get_members() {
     echo get members from $1 to $2
     # TODO: run command
-    echo /var/lib/cnx/cnx-buildout/bin/instance run member2csv.py $1 $2 $csvfile
+    echo /var/lib/cnx/cnx-buildout/bin/instance run member2csv.py $csvfile $1 $2
 }
 
 function backup_file() {
@@ -49,4 +49,4 @@ if [ $remainder -gt 0 ]; then
     get_members $start $end
 fi
 
-echo Finished. All members should be in the file $csvfile
+echo Finished. All members should be in the file: $csvfile
