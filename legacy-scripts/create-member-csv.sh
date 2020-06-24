@@ -11,9 +11,7 @@ function get_members() {
 
 function backup_file() {
     if [ -f "$1" ]; then
-        # TODO: uncomment
-        # mv -f "$1" "$1.bak"
-        echo renaming file here # TODO:
+        mv -f "$1" "$1.bak"
     fi
 }
 
@@ -23,8 +21,7 @@ backup_file $csvfile
 
 # get member count
 echo get member count
-# TODO: run command
-echo /var/lib/cnx/cnx-buildout/bin/instance run getmembercount.py $countfile
+/var/lib/cnx/cnx-buildout/bin/instance run getmembercount.py $countfile
 
 if [ -f "$countfile" ]; then
     membercount=$(head -n 1 $countfile)
