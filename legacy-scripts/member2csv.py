@@ -2,6 +2,7 @@
 
 import sys
 import csv
+from time import sleep
 from Products.CMFCore.utils import getToolByName
 from Products.PluggableAuthService.interfaces.plugins import IRoleAssignerPlugin
 
@@ -20,6 +21,7 @@ def get_member_data(start, end):
 
     member_ids = get_member_ids()
     for index in range(start, end+1):
+        sleep(0.01)     # sleep 10ms to reduce load on production legacy
         member = get_member_info(member_ids[index])
         if member:
             member_id_name = member.id
