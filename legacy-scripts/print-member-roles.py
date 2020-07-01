@@ -43,8 +43,8 @@ def print_member_roles(start, end):
             print("Roles: %s" % member_roles)
 
 def main():
-    start_index = int(sys.argv[2])
-    end_index = int(sys.argv[3])
+    start_index = int(sys.argv[1])
+    end_index = int(sys.argv[2])
 
     print_member_roles(start_index, end_index)
 
