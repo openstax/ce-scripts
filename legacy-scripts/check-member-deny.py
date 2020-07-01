@@ -2,7 +2,6 @@
 
 import sys
 import csv
-import transaction
 from time import sleep
 from Products.CMFCore.utils import getToolByName
 from Products.PluggableAuthService.interfaces.plugins import IRoleAssignerPlugin
@@ -54,9 +53,9 @@ def deny_member_roles(access_list, start, end):
                     for role in member_roles:
                         try:
                             portal_role_manager.removeRoleFromPrincipal(role, member_id_name)
-                            transaction.commit()
                         except:
                             print('=== Role %s could not be removed from user: %s ===' % (role, member_id_name) )
+    import transaction; transaction.commit()
 
 def main():
     access_list_filename = sys.argv[1]
