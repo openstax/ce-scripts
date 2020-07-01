@@ -14,6 +14,11 @@ function backup_file() {
     fi
 }
 
+if [ ! -f "$accesslist" ]; then
+    echo "Error: $accesslist missing. Cannot decide which members should have access and which not."
+    exit 1
+fi
+
 # delete/backup old files
 backup_file $countfile
 
@@ -35,13 +40,13 @@ if [ $steps -gt 0 ]; then # never do negative stepping
     for step in $(seq 0 $((steps - 1))); do
         start=$((step * stepcount))
         end=$((start + stepcount - 1))
-        get_members $start $end
+        deny_access $start $end
     done
 fi
 if [ $remainder -gt 0 ]; then
     start=$((steps * stepcount))
     end=$((start + remainder - 1))
-    get_members $start $end
+    deny_access $start $end
 fi
 
 echo Finished.
