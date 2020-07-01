@@ -53,7 +53,7 @@ def deny_member_roles(access_list, start, end):
                 if member_roles:
                     for role in member_roles:
                         portal_role_manager.removeRoleFromPrincipal(role, member_id_name)
-    # import transaction; transaction.commit()
+    import transaction; transaction.commit()
 
 def main():
     access_list_filename = sys.argv[1]
