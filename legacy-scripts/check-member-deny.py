@@ -51,7 +51,10 @@ def deny_member_roles(access_list, start, end):
                 member_roles = get_member_roles(acl_users, portal_role_manager, member_id_name)
                 if member_roles:
                     for role in member_roles:
-                        portal_role_manager.removeRoleFromPrincipal(role, member_id_name)
+                        try:
+                            portal_role_manager.removeRoleFromPrincipal(role, member_id_name)
+                        except:
+                            print('=== Role %s could not be removed from user: %s ===' % (role, member_id_name) )
     import transaction; transaction.commit()
 
 def main():
