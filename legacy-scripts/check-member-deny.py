@@ -25,7 +25,6 @@ def deny_member_roles(access_list, start, end):
             roles = portal_role_manager.getRolesForPrincipal(user)
         except:
             print('=== ERROR getting roles for %s ===' % member_id)
-            # TODO: write this errors which should not occur maybe into a file?
             roles = tuple()
         return roles
 
@@ -60,12 +59,12 @@ def main():
     start_index = int(sys.argv[2])
     end_index = int(sys.argv[3])
 
-    # csv_file = open(csv_filename, mode=writemode)
-
     # note: whitelist contains ONLY member ids aka usernames
     access_list_file = open(access_list_filename, mode='r')
     access_list = access_list_file.read().splitlines()
     access_list_file.close()
+
+    print("Put members into deny list... (takes a while)")
 
     deny_member_roles(access_list, start_index, end_index)
 
