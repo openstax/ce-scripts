@@ -50,10 +50,9 @@ def deny_member_roles(access_list, start, end):
                 # DENY member
                 # which means: remove all groups from member so that login won't work anymore
                 member_roles = get_member_roles(acl_users, portal_role_manager, member_id_name)
-                print(member_roles)
                 if member_roles:
                     for role in member_roles:
-                        portal_role_manager.removeRoleFromPrincipal(role, member_id)
+                        portal_role_manager.removeRoleFromPrincipal(role, member_id_name)
     # import transaction; transaction.commit()
 
 def main():
