@@ -19,20 +19,23 @@ def deny_member_roles(access_list, start, end):
         mdtool = getToolByName(site, 'portal_memberdata')
         return mdtool.objectIds()
 
-    def get_member_roles(member_id):
-        site = app.objectValues("Plone Site")[0]
-        acl_users = getToolByName(site, 'acl_users')
+    def get_member_roles(acl_users, portal_role_manager, member_id):
         user = acl_users.getUserById(member_id)
-        portal_role_manager = acl_users.portal_role_manager
         try:
             roles = portal_role_manager.getRolesForPrincipal(user)
         except:
             print('=== ERROR getting roles for %s ===' % member_id)
-            # TODO: write this errors in file
+            # TODO: write this errors which should not occur maybe into a file?
             roles = tuple()
         return roles
 
     member_ids = get_member_ids()
+
+    # intialize roles variables
+    site = app.objectValues("Plone Site")[0]
+    acl_users = getToolByName(site, 'acl_users')
+    portal_role_manager = acl_users.portal_role_manager
+
     for index in range(start, end+1):
         sleep(0.01)     # sleep 10ms to reduce load on production legacy
         member = get_member_info(member_ids[index])
@@ -46,18 +49,12 @@ def deny_member_roles(access_list, start, end):
             else:
                 # DENY member
                 # which means: remove all groups from member so that login won't work anymore
-                # TODO: see code from Mike
-
-                # user = acl_users.getUserById(member_id)
-                member_roles = get_member_roles(member_id_name)
-                print("%s is part of:" % member_id_name)
+                member_roles = get_member_roles(acl_users, portal_role_manager, member_id_name)
                 print(member_roles)
                 if member_roles:
                     for role in member_roles:
-                        pass
-                        # portal_role_manager.removeRoleFromPrincipal(role, member_id)
-
-
+                        portal_role_manager.removeRoleFromPrincipal(role, member_id)
+    # import transaction; transaction.commit()
 
 def main():
     access_list_filename = sys.argv[1]
