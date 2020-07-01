@@ -40,7 +40,10 @@ def print_member_roles(start, end):
             member_id_name = member.id
             member_roles = get_member_roles(acl_users, portal_role_manager, member_id_name)
             print("User: %s" % member_id_name)
-            print("Roles: %s" % member_roles)
+            if member_roles:
+                print("Roles: %s" % member_roles)
+            else:
+                print("Roles: n.a.")
 
 def main():
     start_index = int(sys.argv[1])
