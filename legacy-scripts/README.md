@@ -30,7 +30,9 @@ jerry
 therealmarv
 ```
 
-FYI: accesslist.txt as it was run on [2020-07-02 on production link here](https://drive.google.com/file/d/1UIpFOaG2vV70SWc75amdEd96twCUoLbh/view?usp=sharing). Details are on [issue 1014](https://github.com/openstax/cnx/issues/1014).
+FYI: accesslist.txt as it was run on [2020-07-02 on production link here](https://drive.google.com/file/d/1UIpFOaG2vV70SWc75amdEd96twCUoLbh/view?usp=sharing).
+Details are on [issue 1014](https://github.com/openstax/cnx/issues/1014).
+Please be sure that accesslist.txt is correct & up to date **before** it is run on production and **it also includes new accounts**!
 
 To restrict access to all members except the ones on the `accesslist.txt` run this command:
 
