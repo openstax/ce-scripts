@@ -49,4 +49,5 @@ a number of members with this command which checks member roles from member 0 to
 
 ```bash
 /var/lib/cnx/cnx-buildout/bin/instance run print-member-roles.py 0 100
-```
+
+Info: Run script on staging on `staging04.cnx.org` and on production on `prod04.cnx.org`.
