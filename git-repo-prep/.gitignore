@@ -1,0 +1,10 @@
+**.DS_Store
+**node_modules
+**__pycache__
+.env
+books-list.json
+approved-book-list.json
+gh_*
+*.tar.gz
+tmp-gh-creds
+osbooks-*
