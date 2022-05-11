@@ -8,7 +8,8 @@ from shlex import split
 from subprocess import PIPE, run
 from typing import Any, Dict, List, Optional
 
-REPO_PREP_SCRIPT = Path(__file__).parent/'index.ts'
+SCRIPT_ROOT = Path(__file__).parent
+REPO_PREP_SCRIPT = SCRIPT_ROOT/'index.ts'
 
 
 class GHResponse:
@@ -50,11 +51,12 @@ class GitRepo:
 
     @property
     def branches_remote(self) -> List[str]:
-        return [bs.strip() for bs in self('branch -rl').split('\n')]
+        return list(
+            filter(len, map(str.strip, self('branch -rl').split('\n'))))
 
     @property
     def tags(self) -> List[str]:
-        return [tag.strip() for tag in self('tag -l').split('\n')]
+        return list(filter(len, map(str.strip, self('tag -l').split('\n'))))
 
     @property
     def has_changes(self) -> bool:
@@ -120,9 +122,13 @@ class GitRepo:
             self(f'pull origin "{branch}"')
 
 
-def spawn(command: List[str]) -> bytes:
+def create_process(command: List[str]):
     logging.info(' '.join(command))
-    p = run(command, stdout=PIPE, stderr=PIPE)
+    return run(command, stdout=PIPE, stderr=PIPE)
+
+
+def spawn(command: List[str]) -> bytes:
+    p = create_process(command)
     if p.returncode != 0:
         if p.stderr:
             err = f'{command}: {p.stderr.decode("utf-8")}'
@@ -141,7 +147,7 @@ def gh(command: str) -> GHResponse:
 
 
 def get_books_list() -> List[str]:
-    cache = Path(__file__).parent/'books-list.json'
+    cache = SCRIPT_ROOT/'books-list.json'
     if cache.exists():
         return json.loads(cache.read_bytes())
     response = gh('repo list openstax --private')
@@ -182,8 +188,7 @@ def cleanup_branches(git: GitRepo):
 
 
 def get_tags_to_delete(git: GitRepo):
-    return [tag for tag in git.tags
-            if re.match(r'[0-9]+(rc){0,1}', tag) is not None]
+    return git.tags
 
 
 def cleanup_tags(git: GitRepo):
@@ -191,17 +196,41 @@ def cleanup_tags(git: GitRepo):
         git(f'push origin --delete "{tag}"')
 
 
-def remove_files(file_paths: List[Path]):
-    for file_path in file_paths:
-        if file_path.exists():
-            logging.info(f'Removing {file_path}')
-            file_path.unlink()
+def remove_orphans(book_path: Path, directory_whitelist: List[Path]):
+    p = create_process(split(f'poet orphans {book_path}'))
+
+    # https://github.com/openstax/poet/blob/c3c6c37d43d60f4501aead37c43cbbb3faa24704/server/src/model/_cli.ts#L189
+    if p.returncode != 111:
+        return
+
+    poet_errors = p.stderr.decode('utf-8').strip().split('\n')
+    poet_output = p.stdout.decode('utf-8').strip().split('\n')
+
+    for line in poet_errors:
+        if 'Validation Errors' in line:
+            error_count = int(line.split(':')[1].strip())
+            raise Exception('Validation Errors:\n' +
+                            '\n'.join(poet_output[:error_count]))
+
+    orphans = filter(lambda p: p.exists(), map(Path, poet_output))
+
+    total = 0
+    for orphan in orphans:
+        if (not orphan.is_file() or orphan.parent not in directory_whitelist):
+            continue
+        if orphan.name == 'index.cnxml':
+            orphan.unlink()
+            orphan.parent.rmdir()
+        else:
+            orphan.unlink()
+        total += 1
+        logging.info(f'Removing {orphan}')
+    logging.info(f'Removed {total} orphan(s)')
 
 
 def cleanup_files(git: GitRepo, book_path: Path):
-    remove_files([book_path/'canonical.json'] +
-                 list(book_path.glob('editor-*.vsix')))
-    git.commit_all('Remove unwanted files')
+    remove_orphans(book_path, [book_path])
+    git.commit_all('Remove unnecessary files from root directory')
 
 
 def ensure_correct_license(
@@ -262,6 +291,12 @@ def install_node_modules():
     update_path(node_modules/'.bin')
 
 
+def install_poet():
+    poet_dir = SCRIPT_ROOT/'poet'
+    _ = GitRepo(poet_dir, remote_repo='openstax/poet')
+    update_path(poet_dir)
+
+
 def list_prs():
     # Example return value:
     # number  title                                           status
@@ -273,12 +308,13 @@ def list_prs():
 
 def init():
     logging.getLogger().setLevel(logging.INFO)
-    env = Path(__file__).parent/'.env'
+    env = SCRIPT_ROOT/'.env'
     if env.exists():
         for line in env.read_text().split('\n'):
             k, v = [s.strip() for s in line.split('=')]
             os.environ[k] = v
     install_node_modules()
+    install_poet()
     # This was not needed after all
     # install_gh_cli()
     GitRepo.configure_secrets()

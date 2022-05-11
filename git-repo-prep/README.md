@@ -9,7 +9,7 @@ Staxly is the mechanism that actually makes the repositories public based on the
 1. Generate `README.md` based on the templates in `git-repo-prep/static`
 1. Copy `git-repo-prep/static/repo-settings` into the repository
 1. Remove all branches that DO NOT conform to the regex `[0-9]+e` (1e, 2e, etc.)
-1. Remove all tags that DO conform to the regex `[0-9]+(rc){0,1}` (1, 1rc, etc.)
+1. Remove all tags
 1. Ensure that all collections use the same license
 1. Ensure that the correct license is used
 1. Push the above changes to Github (only when there are not any errors)
