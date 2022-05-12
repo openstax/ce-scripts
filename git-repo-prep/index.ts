@@ -148,8 +148,19 @@ function createBookReadme(templateDir: string, slugMeta: SlugMeta) {
   return populateTemplate(templatePath, replacements)
 }
 
+function licenseEqual(a: License, b: License) {
+  return a.type === b.type &&
+    a.text === b.text &&
+    a.url === b.url &&
+    a.version === b.version
+}
+
 function createBundleReadme(templateDir: string, slugsMeta: SlugMeta[]) {
   const templatePath = path.join(templateDir, 'bundle.md')
+  const license = slugsMeta[0].colMeta.license
+  if (!slugsMeta.every(sm => licenseEqual(sm.colMeta.license, license))) {
+    throw new Error('Licenses differ between collections')
+  }
   const replacements = {
     'book_titles':
       slugsMeta.map((s, i) =>
@@ -159,9 +170,9 @@ function createBundleReadme(templateDir: string, slugsMeta: SlugMeta[]) {
       slugsMeta.map(s =>
         `- _${s.colMeta.title}_ [online](${BOOK_WEB_ROOT}${encodeURIComponent(s.slugName)})`
       ).join('\n'),
-    'license_text': slugsMeta[0].colMeta.license.text,
-    'license_type': slugsMeta[0].colMeta.license.type,
-    'license_version': slugsMeta[0].colMeta.license.version
+    'license_text': license.text,
+    'license_type': license.type,
+    'license_version': license.version
   }
   return populateTemplate(templatePath, replacements)
 }

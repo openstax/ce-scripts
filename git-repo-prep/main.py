@@ -1,3 +1,4 @@
+import functools
 import json
 import logging
 import os
@@ -10,23 +11,6 @@ from typing import Any, Dict, List, Optional
 
 SCRIPT_ROOT = Path(__file__).parent
 REPO_PREP_SCRIPT = SCRIPT_ROOT/'index.ts'
-
-
-class GHResponse:
-    def __init__(self, response: bytes):
-        self.response = response
-
-    @property
-    def text(self):
-        return self.response.decode('utf-8').strip()
-
-    @property
-    def json(self):
-        return json.loads(self.response)
-
-
-def clone_repo(remote_repo: str, path: str):
-    gh(f'repo clone "{remote_repo}" "{path}"')
 
 
 class GitRepo:
@@ -110,16 +94,16 @@ class GitRepo:
             else:
                 self('init')
             branch = self.branch
+        if self.has_changes:
+            self('stash')
         if branch != self.working_branch:
             branch = self.working_branch
-            if self.has_changes:
-                self('stash')
             if branch not in self.branches_local:
                 self.checkout(branch, True)
             else:
                 self.checkout(branch, False)
         if self.remote_repo is not None:
-            self(f'pull origin "{branch}"')
+            self(f'pull --rebase origin "{branch}"')
 
 
 def create_process(command: List[str]):
@@ -142,27 +126,10 @@ def sspawn(command: str) -> bytes:
     return spawn(split(command))
 
 
-def gh(command: str) -> GHResponse:
-    return GHResponse(spawn(['gh'] + split(command)))
-
-
-def get_books_list() -> List[str]:
-    cache = SCRIPT_ROOT/'books-list.json'
-    if cache.exists():
-        return json.loads(cache.read_bytes())
-    response = gh('repo list openstax --private')
-    books_list = [
-        line.split('\t')[0]
-        for line in response.text.split('\n')
-        if 'osbooks-' in line]
-    cache.write_text(json.dumps(books_list))
-    return books_list
-
-
 def get_approved_books() -> List[str]:
-    abl_path = Path('approved-book-list.json')
+    abl_path = SCRIPT_ROOT/'approved-book-list.json'
     if not abl_path.exists():
-        sspawn(f'wget {os.environ["ABL_URL"]}')
+        sspawn(f'wget {os.environ["ABL_URL"]} -O {abl_path}')
     abl = json.loads(abl_path.read_bytes())
     return [
         book['repository_name']
@@ -183,7 +150,7 @@ def get_branches_to_delete(git: GitRepo):
 
 def cleanup_branches(git: GitRepo):
     for branch_spec in get_branches_to_delete(git):
-        remote, branch = branch_spec.split('/')
+        remote, branch = branch_spec.split('/', maxsplit=1)
         git(f'push "{remote}" --delete "{branch}"')
 
 
@@ -212,7 +179,7 @@ def remove_orphans(book_path: Path, directory_whitelist: List[Path]):
             raise Exception('Validation Errors:\n' +
                             '\n'.join(poet_output[:error_count]))
 
-    orphans = filter(lambda p: p.exists(), map(Path, poet_output))
+    orphans = filter(Path.exists, map(Path, poet_output))
 
     total = 0
     for orphan in orphans:
@@ -233,61 +200,65 @@ def cleanup_files(git: GitRepo, book_path: Path):
     git.commit_all('Remove unnecessary files from root directory')
 
 
+@functools.lru_cache
+def get_license_first_line(license_path: Path):
+    first_line = ''
+    with open(license_path, 'r') as fin:
+        first_line = fin.readline().strip()
+    return first_line
+
+
 def ensure_correct_license(
     git: GitRepo,
     book_path: Path,
     book_meta: Dict[str, Any]
 ):
-    license_dir = Path('licenses')
+    license_dir = SCRIPT_ROOT/'licenses'
     slugs_meta = book_meta['slugsMeta']
     license_info = slugs_meta[0]['colMeta']['license']
-    for slug_meta in slugs_meta[1:]:
-        col_meta = slug_meta['colMeta']
-        col_license_info = col_meta['license']
-        if license_info != col_license_info:
-            raise Exception('Licenses differ between collections')
     license_type = license_info['type']
     license_version = license_info['version']
     license_file = license_dir/f'{license_type}-{license_version}.txt'
     if not license_file.exists():
         logging.warning(f'Unknown license: {license_file}')
         return
-    shutil.copy(license_file, book_path/'LICENSE')
-    git.commit_all('Update LICENSE')
+
+    expected_first_line = get_license_first_line(license_file)
+    existing_first_line = ''
+
+    existing_license = book_path/'LICENSE'
+    if existing_license.exists():
+        with open(existing_license, 'r') as fin:
+            existing_first_line = fin.readline().strip()
+
+    if existing_first_line != expected_first_line:
+        shutil.copy(license_file, book_path/'LICENSE')
+        git.commit_all('Update LICENSE')
 
 
 def run_repo_prep(git: GitRepo, book_path: Path):
     book_meta = json.loads(sspawn(f'ts-node {REPO_PREP_SCRIPT} {book_path}'))
-    git.commit_all('Add README and repo settings')
+    git.commit_all('Add README and repository settings')
     return book_meta
 
 
-def update_path(new_segment: str):
+def update_path(new_segment: Path):
     path = os.environ.get('PATH', None)
     if path is not None:
-        os.environ['PATH'] = f'{new_segment}:{path}'
+        os.environ['PATH'] = f'{new_segment.absolute()}:{path}'
     else:
-        os.environ['PATH'] = f'{new_segment}'
-
-
-def install_gh_cli():
-    ver = os.environ.get('GH_CLI_VERSION', '2.9.0')
-    cli_root = f'gh_{ver}_linux_amd64'
-    tar_file = f'gh_{ver}_linux_amd64.tar.gz'
-    if not cli_bin.exists():
-        tar_file_path = Path(tar_file)
-        if not tar_file_path.exists():
-            sspawn('wget https://github.com/cli/cli/releases/download/'
-                   f'v{ver}/{tar_file}')
-        sspawn(f'tar -xf {tar_file}')
-        tar_file_path.unlink()
-    update_path(Path(cli_root)/'bin')
+        os.environ['PATH'] = f'{new_segment.absolute()}'
 
 
 def install_node_modules():
     node_modules = REPO_PREP_SCRIPT.parent/'node_modules'
     if not node_modules.exists():
-        sspawn(f'npm install "{REPO_PREP_SCRIPT.parent}"')
+        import os
+        cwd = Path.cwd()
+        parent_dir = REPO_PREP_SCRIPT.parent.absolute()
+        os.chdir(parent_dir)
+        sspawn(f'npm install "{parent_dir}"')
+        os.chdir(cwd)
     update_path(node_modules/'.bin')
 
 
@@ -295,15 +266,6 @@ def install_poet():
     poet_dir = SCRIPT_ROOT/'poet'
     _ = GitRepo(poet_dir, remote_repo='openstax/poet')
     update_path(poet_dir)
-
-
-def list_prs():
-    # Example return value:
-    # number  title                                           status
-    # 1       add style to META-INF/books.xml meta-inf-style  OPEN
-    for book in get_approved_books():
-        repo = f'openstax/{book}'
-        print(sspawn(f'gh pr list -R {repo}').decode('utf-8'))
 
 
 def init():
@@ -315,15 +277,14 @@ def init():
             os.environ[k] = v
     install_node_modules()
     install_poet()
-    # This was not needed after all
-    # install_gh_cli()
     GitRepo.configure_secrets()
     sspawn('git config --global user.email "staxly@openstax.org"')
     sspawn('git config --global user.name "Staxly"')
 
 
 def main():
-    for book in get_approved_books():
+    approved_books = get_approved_books()
+    for book in approved_books:
         repo = f'openstax/{book}'
         book_path = Path(book)
         logging.info(f'\x1b[33m========> {repo} <========\x1b[37m')

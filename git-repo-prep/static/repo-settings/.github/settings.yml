@@ -1,4 +1,4 @@
-# These settings are synced to GitHub by https://probot.github.io/apps/settings/
+# These settings are synced to GitHub by https://probot.github.io/apps/settings/ via https://github.com/openstax/staxly
 
 repository:
   private: false
