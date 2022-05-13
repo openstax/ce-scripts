@@ -318,6 +318,8 @@ def init():
     # This was not needed after all
     # install_gh_cli()
     GitRepo.configure_secrets()
+    sspawn('git config --global user.email "staxly@openstax.org"')
+    sspawn('git config --global user.name "Staxly"')
 
 
 def main():

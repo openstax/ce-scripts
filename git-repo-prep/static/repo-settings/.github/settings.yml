@@ -1,7 +1,6 @@
 # These settings are synced to GitHub by https://probot.github.io/apps/settings/
 
 repository:
-  # See https://docs.github.com/en/rest/reference/repos#update-a-repository for all available settings.
   private: false
 
   has_issues: false
@@ -9,16 +8,10 @@ repository:
   has_projects: false
   has_downloads: false
 
-  default_branch: main
-
   allow_auto_merge: true
   delete_branch_on_merge: true
-  allow_forking: true
 
-# See https://docs.github.com/en/rest/reference/teams#add-or-update-team-repository-permissions for available options
 teams:
-  - name: all
-    permission: pull
   - name: ce-admins
     permission: push
   - name: ce-all
