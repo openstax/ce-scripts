@@ -4,6 +4,7 @@ import logging
 import os
 import re
 import shutil
+import sys
 from pathlib import Path
 from shlex import split
 from subprocess import PIPE, run
@@ -283,6 +284,11 @@ def init():
 
 
 def main():
+    dry_run = (
+        False
+        if len(sys.argv) > 1 and sys.argv[1] in ('p', 'push', 'sync') else
+        True
+    )
     approved_books = get_approved_books()
     for book in approved_books:
         repo = f'openstax/{book}'
@@ -290,16 +296,16 @@ def main():
         logging.info(f'\x1b[33m========> {repo} <========\x1b[37m')
         try:
             git = GitRepo(str(book_path), remote_repo=repo)
-            print(f'Would remove {get_branches_to_delete(git)}')
-            print(f'Would remove {get_tags_to_delete(git)}')
             cleanup_files(git, book_path)
             book_meta = run_repo_prep(git, book_path)
             ensure_correct_license(git, book_path, book_meta)
-            # NOTE: These steps are commented out during testing because they
-            #       all push changes to the Github repositories
-            # cleanup_branches(git)
-            # cleanup_tags(git)
-            # git.push_changes()
+            if not dry_run:
+                cleanup_branches(git)
+                cleanup_tags(git)
+                git.push_changes()
+            else:
+                print(f'Would remove {get_branches_to_delete(git)}')
+                print(f'Would remove {get_tags_to_delete(git)}')
         except Exception as e:
             logging.error(f'\x1b[31m{repo}: {e}\x1b[37m')
 

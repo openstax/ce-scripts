@@ -23,18 +23,20 @@ Make a copy of .env.example and rename it to .env.
 Generate a token for your GitHub account that has repository access.
 Paste your GitHub token in .env next to GITHUB_TOKEN=
 
-**NOTE** these functions will make changes to the live repositories online: make sure they are commented out in main.py if you do not wish to push changes. (They are commented out at the time of writing this)
-- cleanup_branches(git)
-- cleanup_tags(git)
-- git.push_changes()
+**NOTE** By default, the script will not make changes to the live repositories online. If you want to push changes add an argument the the script with a value of `p`, `push`, or `sync`.
+
+**NOTE** The script will set your git user to `Staxly` globally. You should reset it when you are done. This should really be done automatically, but it is not.
 
 Run it:
 ```bash
+# dry run
 python3 main.py
+# push changes
+python3 main.py push
 ```
 
 Dependencies:
-- npm
+- nodejs/npm
 - python3
 - wget
 - git
