@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+API_ENDPOINT="https://corgi-bootcamp.ce.openstax.org/bootcamp/checkout"
+readonly API_ENDPOINT
+
+ref="$1"
+repo="$(basename "$(git rev-parse --show-toplevel)")"
+readonly repo
+
+
+[[ -z "$ref" ]] && {
+    ref=$(git rev-parse --short HEAD)
+    branch_name="$(git rev-parse --abbrev-ref HEAD)"
+    [[ $branch_name == "HEAD" ]] && {
+        unset branch_name
+    }
+}
+readonly branch_name
+
+
+if [[ -n "$branch_name" ]]; then
+    prompt="Checking out \"$ref\" on branch \"$branch_name\". Is this okay? (y/n) "
+else
+    prompt="Checking out \"$ref\". Is this okay? (y/n) "
+fi
+
+grep -v '' <(git branch -r --contains "$ref" 2> /dev/null) && {
+    echo "The ref \"$ref\" is not on a remote. (Maybe push changes?)"
+    exit 1
+}
+
+corgi_ref=""
+enki_ref=""
+
+case "$repo" in
+    "enki")
+        enki_ref="$ref"
+    ;;
+    "corgi")
+        corgi_ref="$ref"
+    ;;
+    *)
+        echo "You must be in either enki or corgi"
+        exit 1
+    ;;
+esac
+
+read -rp "$prompt" && {
+    [[ "$REPLY" == "y" ]] || {
+        echo "Aborting..."
+        exit 0
+    }
+}
+
+curl \
+    -i \
+    -H 'content-type: application/json' \
+    --data '{ "corgi_ref": "'"$corgi_ref"'", "enki_ref": "'"$enki_ref"'" }' \
+    "$API_ENDPOINT"
