@@ -2,7 +2,7 @@
 
 set -eo pipefail
 
-API_ENDPOINT="https://corgi-bootcamp.ce.openstax.org/bootcamp/checkout"
+API_ENDPOINT="https://corgi-hotdog.ce.openstax.org/hotdog/checkout"
 readonly API_ENDPOINT
 
 ref="$1"
