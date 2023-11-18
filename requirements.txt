@@ -1,4 +1,4 @@
-certifi==2019.6.16
+certifi==2022.12.7
 chardet==3.0.4
 chromedriver-binary==75.0.3770.140.0
 git+https://github.com/openstax/cnx-rex-redirects.git
